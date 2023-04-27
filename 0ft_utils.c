@@ -35,16 +35,21 @@ long	long	timestamp(void)
 	return (t.tv_sec * 1000 + t.tv_usec / 1000);
 }
 
-void	action_print(t_rules *rules, int id, char *str)
+void	*action_print(t_rules *rules, int id, char *str)
 {
-	pthread_mutex_lock(&(rules->action));
-	if (rules->dieded == 0)
+	pthread_mutex_lock(&(rules->dead));
+	if (!rules->dieded)
+	{
 		printf("%lli ms Nr. %d philo %s\n",
 			timestamp() - rules->first_timestamp, id, str);
-	pthread_mutex_unlock(&(rules->action));
+		pthread_mutex_unlock(&(rules->dead));
+		return (NULL);
+	}
+	pthread_mutex_unlock(&(rules->dead));
+	return (NULL);
 }
 
-void	ft_sleep(long long time_sleep, t_rules *rules)
+void	*ft_sleep(long long time_sleep, t_rules *rules)
 {
 	long long	wake_up;
 
@@ -52,28 +57,32 @@ void	ft_sleep(long long time_sleep, t_rules *rules)
 	while (wake_up - timestamp() > 0)
 	{
 		check_death(rules);
+		pthread_mutex_lock(&(rules->dead));
 		if (rules->dieded == 1)
-			break ;
+		{
+			pthread_mutex_unlock(&(rules->dead));
+			return (NULL);
+		}
+		pthread_mutex_unlock(&(rules->dead));
 		usleep(100);
 	}
+	return (NULL);
 }
 
-int	num_times_eat_check(t_rules *rules)
+void	num_times_eat_check(t_rules *rules)
 {
 	int	i;
 	int	ate_time_all;
 
 	i = 0;
 	ate_time_all = 0;
-	if (rules->num_times_eat)
+	while (i++ < rules->num_philos)
+		ate_time_all += rules->philos[i].id_ate;
+	if (ate_time_all >= rules->num_times_eat * rules->num_philos
+		&& rules->num_times_eat)
 	{
-		while (i++ < rules->num_philos)
-			ate_time_all += rules->philos[i].id_ate;
-		if (ate_time_all >= rules->num_times_eat * rules->num_philos)
-		{
-			rules->all_ate_times = 1;
-			rules->dieded = 1;
-		}
+		pthread_mutex_lock(&(rules->dead));
+		rules->dieded = 1;
+		pthread_mutex_unlock(&(rules->dead));
 	}
-	return (rules->all_ate_times);
 }

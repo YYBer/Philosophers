@@ -23,7 +23,9 @@ static	void	init_mutex(t_rules *rules)
 	while (--i >= 1)
 		if (pthread_mutex_init(&(rules->fork[i]), NULL))
 			ft_error(rules, "init failed");
-	if (pthread_mutex_init(&(rules->action), NULL))
+	if (pthread_mutex_init(&(rules->meal), NULL))
+		ft_error(rules, "init failed");
+	if (pthread_mutex_init(&(rules->dead), NULL))
 		ft_error(rules, "init failed");
 }
 
@@ -56,32 +58,18 @@ t_rules	*init_rules(char **argv)
 {
 	t_rules	*rules;
 
+	ft_argument_check(argv);
 	rules = malloc(sizeof(t_rules) * 1);
 	if (!rules)
 		ft_error(rules, "init failed");
-	rules->num_philos = check_input(argv[1]);
-	if (rules->num_philos <= 0)
-		ft_error(rules, "init failed");
-	rules->time_death = check_input(argv[2]);
-	if (rules->time_death <= 0)
-		ft_error(rules, "init failed");
-	rules->time_eat = check_input(argv[3]);
-	if (rules->time_eat <= 0)
-		ft_error(rules, "init failed");
-	rules->time_sleep = check_input(argv[4]);
-	if (rules->time_sleep <= 0)
-		ft_error(rules, "init failed");
+	rules->num_philos = atoi_unsigned_integer(argv[1]);
+	rules->time_death = atoi_unsigned_integer(argv[2]);
+	rules->time_eat = atoi_unsigned_integer(argv[3]);
+	rules->time_sleep = atoi_unsigned_integer(argv[4]);
 	rules->dieded = 0;
-	rules->all_ate_times = 0;
 	rules->philos = init_philosophers(rules);
 	if (argv[5])
-	{
-		rules->num_times_eat = check_input(argv[5]);
-		if (rules->num_times_eat < 0)
-			ft_error(rules, "init failed");
-		if (rules->num_times_eat == 0)
-			ft_error(rules, "should eat more than one time :/");
-	}
+		rules->num_times_eat = atoi_unsigned_integer(argv[5]);
 	else
 		rules->num_times_eat = 0;
 	init_mutex(rules);

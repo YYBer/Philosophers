@@ -17,36 +17,26 @@ static void	philo_eat(t_philosopher *philos)
 	t_rules	*rules;
 
 	rules = philos->rules;
+	pthread_mutex_lock(&(rules->dead));
 	if (!philos->rules->dieded)
 	{
+		pthread_mutex_unlock(&(rules->dead));
 		pthread_mutex_lock(&(rules->fork[philos->left_fork]));
-		action_print(rules, philos->id, "has taken left fork");
+		action_print(rules, philos->id, "has taken a fork");
 		pthread_mutex_lock(&(rules->fork[philos->right_fork]));
-		action_print(rules, philos->id, "has taken right fork");
+		action_print(rules, philos->id, "has taken a fork");
 		action_print(rules, philos->id, "is eating");
+		pthread_mutex_lock(&(rules->meal));
 		rules->philos[philos->id].last_meal = timestamp();
+		pthread_mutex_unlock(&(rules->meal));
 		ft_sleep(rules->time_eat, rules);
 		rules->philos[philos->id].id_ate += 1;
 		pthread_mutex_unlock(&(rules->fork[philos->left_fork]));
 		pthread_mutex_unlock(&(rules->fork[philos->right_fork]));
+		return ;
 	}
-}
-
-void	check_death(t_rules *rules)
-{
-	int	i;
-
-	i = 1;
-	while (i <= rules->num_philos)
-	{
-		if ((timestamp() - rules->philos[i].last_meal) > rules->time_death)
-		{
-			action_print(rules, rules->philos[i].id, "died");
-			rules->dieded = 1;
-			break ;
-		}
-		i++;
-	}
+	pthread_mutex_unlock(&(rules->dead));
+	return ;
 }
 
 static void	*lonely_philo(t_philosopher *philos)
@@ -55,11 +45,28 @@ static void	*lonely_philo(t_philosopher *philos)
 
 	rules = philos->rules;
 	pthread_mutex_lock(&(rules->fork[philos->left_fork]));
-	action_print(rules, philos->id, "has taken left fork");
+	action_print(rules, philos->id, "has taken a fork");
 	usleep(rules->time_death * 1000);
-	action_print(rules, philos->id, "died");
+	check_death(rules);
 	pthread_mutex_unlock(&(rules->fork[philos->left_fork]));
 	return (NULL);
+}
+
+static void	deadlock(t_philosopher *philos)
+{
+	int	max;
+
+	max = philos->rules->num_philos;
+	if (max % 2 == 0)
+	{
+		if (philos->id % 2 == 0)
+			usleep(philos->rules->time_eat * 100);
+	}
+	else
+	{
+		if (philos->id == max || philos->id % 2 == 0)
+			usleep(philos->rules->time_eat * 100);
+	}
 }
 
 void	*philo_action(void *philo)
@@ -70,12 +77,11 @@ void	*philo_action(void *philo)
 
 	i = 0;
 	philos = (t_philosopher *)philo;
-	if (philos->id % 2 == 0)
-		usleep(philos->rules->time_eat * 100);
+	deadlock(philos);
 	rules = philos->rules;
 	if (rules->num_philos == 1)
 		return (lonely_philo(philos));
-	while (!rules->dieded && rules->all_ate_times == 0)
+	while (!rules->dieded)
 	{
 		philo_eat(philos);
 		num_times_eat_check(rules);

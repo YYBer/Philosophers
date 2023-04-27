@@ -13,7 +13,7 @@
 NAME = philo
 CFLAGS = -Wall -Werror -Wextra
 HEADER = philo.h
-CC = cc
+CC = cc -g3
 SRCS = main.c 0ft_utils.c 1check_input.c 2ft_init.c 3ft_execute.c 4ft_free.c
 OBJS = $(SRCS:.c=.o)
 

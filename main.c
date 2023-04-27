@@ -18,9 +18,7 @@ int	main(int argc, char **argv)
 
 	rules = NULL;
 	if (argc == 5 || argc == 6)
-	{
 		rules = init_rules(argv);
-	}
 	else
 		ft_error(rules, "wrong argument");
 	ft_execute(rules);

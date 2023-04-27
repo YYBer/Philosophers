@@ -34,7 +34,8 @@ typedef struct s_rules
 {
 	long long		first_timestamp;
 	pthread_mutex_t	*fork;
-	pthread_mutex_t	action;
+	pthread_mutex_t	meal;
+	pthread_mutex_t	dead;
 	t_philosopher	*philos;
 	int				num_philos;
 	int				time_death;
@@ -42,22 +43,21 @@ typedef struct s_rules
 	int				time_sleep;
 	int				num_times_eat;
 	int				dieded;
-	int				all_ate_times;
 }	t_rules;
 
 int			ft_error(t_rules *rules, char *str);
-void		*free_rules(t_rules	*rules);
 long long	timestamp(void);
-void		ft_sleep(long long time, t_rules *rules);
-void		action_print(t_rules *rules, int id, char *str);
-int			num_times_eat_check(t_rules *rules);
-int			check_input(char *str);
+void		*ft_sleep(long long time, t_rules *rules);
+void		*action_print(t_rules *rules, int id, char *str);
+void		num_times_eat_check(t_rules *rules);
+int			atoi_unsigned_integer(char *str);
+void		ft_argument_check(char	**str);
 t_rules		*init_rules(char **argv);
 void		check_death(t_rules *rules);
 void		*philo_action(void *philo);
 void		ft_execute(t_rules *rules);
 void		ft_exit(t_rules *rules, t_philosopher *philos);
-void		*free_rules(t_rules	*rules);
+void		free_rules(t_rules	*rules);
 int			main(int argc, char **argv);
 
 #endif
